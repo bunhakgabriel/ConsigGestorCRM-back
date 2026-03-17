@@ -1,6 +1,6 @@
 const route = (app) => {
-    app.route((req, res) => {
-        res.status(200).send('Bem vindo a api ConsigGestorCRM!')
+    app.route('/').get((req, res) => {
+        res.status(200).send("Bem vindo a api ConsigGestorCRM!")
     })
 }
 
