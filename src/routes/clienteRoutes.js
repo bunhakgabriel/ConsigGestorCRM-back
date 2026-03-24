@@ -8,5 +8,6 @@ const base = '/cliente'
 router
     .get(base + '/buscar', ClienteCtrl.buscarClientes)
     .post(base + '/cadastrar', ClienteCtrl.cadastrarCliente)
+    .delete(base + '/deletar/:id', ClienteCtrl.deletarCliente)
 
 export default router;

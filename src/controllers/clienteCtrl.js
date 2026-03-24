@@ -1,5 +1,6 @@
 import ApiResponse from "../api/ApiResponse.js";
 import ClienteService from "../services/clienteService.js";
+import { AppError } from "../utils/AppError.js";
 
 class ClienteCtrl {
 
@@ -10,7 +11,7 @@ class ClienteCtrl {
             const resp = new ApiResponse(true, data, 'Cliente cadastrado com sucesso!');
             res.status(201).json(resp);
         } catch (e) {
-            next(e)
+            next(e);
         }
     }
 
@@ -20,7 +21,24 @@ class ClienteCtrl {
             const resp = new ApiResponse(true, data);
             res.status(200).json(resp);
         } catch (e) {
-            next(e)
+            next(e);
+        }
+    }
+
+    static deletarCliente = async (req, res, next) => {
+        try {
+            const id = Number(req.params.id);
+
+            if(!id){
+                throw new AppError('ID inválido', 400)
+            }
+
+            await ClienteService.deleterCliente(id);
+
+            const resp = new ApiResponse(true, null, 'Cliente deletado com sucesso!');
+            res.status(200).json(resp);
+        } catch (e) {
+            next(e);
         }
     }
 

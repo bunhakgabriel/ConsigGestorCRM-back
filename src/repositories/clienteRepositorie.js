@@ -31,6 +31,13 @@ class ClienteRepositorie {
         return result.rows;
     }
 
+    static deletarCliente = async (id) => {
+        const sql = 'DELETE FROM clientes WHERE id_cliente = $1';
+        const values = [id];
+        const result = await pool.query(sql, values);
+        return result.rowCount;
+    }
+
 }
 
 export default ClienteRepositorie;
