@@ -29,8 +29,8 @@ class ClienteCtrl {
         try {
             const id = Number(req.params.id);
 
-            if (isNaN(id) || id <= 0) {
-                throw new AppError('ID inválido', 400);
+            if(!id){
+                throw new AppError('ID inválido', 400)
             }
 
             await ClienteService.deleterCliente(id);
