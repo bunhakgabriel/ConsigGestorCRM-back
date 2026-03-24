@@ -17,8 +17,6 @@ class ClienteService {
         if(linhasAfetadas == 0){
             throw new AppError('Cliente não encontrado', 404);
         }
-
-        return;
     }
 }
 
