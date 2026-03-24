@@ -25,6 +25,12 @@ class ClienteRepositorie {
         return result.rows[0];
     }
 
+    static buscarClientes = async () => {
+        const sql = 'SELECT * FROM clientes';
+        const result = await pool.query(sql);
+        return result.rows;
+    }
+
 }
 
 export default ClienteRepositorie;
