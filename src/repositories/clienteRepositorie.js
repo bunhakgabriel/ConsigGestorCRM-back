@@ -18,7 +18,7 @@ class ClienteRepositorie {
             cliente.rg,
             cliente.naturalidade,
             cliente.telefone,
-            cliente.dataNascimento
+            cliente.data_nascimento
         ];
 
         const result = await pool.query(sql, values);
@@ -29,6 +29,13 @@ class ClienteRepositorie {
         const sql = 'SELECT * FROM clientes';
         const result = await pool.query(sql);
         return result.rows;
+    }
+
+    static buscarClientePorId = async (id) => {
+        const sql = 'SELECT * FROM clientes WHERE id_cliente = $1';
+        const values = [id];
+        const result = await pool.query(sql, values);
+        return result.rows[0];
     }
 
     static deletarCliente = async (id) => {

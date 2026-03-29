@@ -11,7 +11,15 @@ class ClienteService {
         return await ClienteRepositorie.buscarClientes();
     }
 
-    static deleterCliente = async (id) => {
+    static buscarClientePorId = async (id) => {
+        const cliente = await ClienteRepositorie.buscarClientePorId(id);
+        if (!cliente) {
+            throw new AppError('Cliente não encontrado', 404);
+        }
+        return cliente;
+    }
+
+    static deletarCliente = async (id) => {
         const linhasAfetadas = await ClienteRepositorie.deletarCliente(id);
 
         if(linhasAfetadas == 0){

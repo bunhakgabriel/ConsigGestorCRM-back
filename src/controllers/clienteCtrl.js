@@ -25,15 +25,31 @@ class ClienteCtrl {
         }
     }
 
+    static buscarClientePorId = async (req, res, next) => {
+        try {
+            const id = Number(req.params.id);
+
+            if (!id) {
+                throw new AppError('ID inválido', 400)
+            }
+
+            const data = await ClienteService.buscarClientePorId(id);
+            const resp = new ApiResponse(true, data);
+            res.status(200).json(resp);
+        } catch (e) {
+            next(e);
+        }
+    }
+
     static deletarCliente = async (req, res, next) => {
         try {
             const id = Number(req.params.id);
 
-            if(!id){
+            if (!id) {
                 throw new AppError('ID inválido', 400)
             }
 
-            await ClienteService.deleterCliente(id);
+            await ClienteService.deletarCliente(id);
 
             const resp = new ApiResponse(true, null, 'Cliente deletado com sucesso!');
             res.status(200).json(resp);
