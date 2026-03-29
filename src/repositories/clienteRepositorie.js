@@ -25,6 +25,33 @@ class ClienteRepositorie {
         return result.rows[0];
     }
 
+    static atualizarCliente = async (cliente) => {
+        const sql = `
+            UPDATE clientes
+            SET nome = $1,
+                cpf = $2,
+                rg = $3,
+                naturalidade = $4,
+                telefone = $5,
+                data_nascimento = $6
+            WHERE id_cliente = $7
+            RETURNING *;
+        `;
+
+        const values = [
+            cliente.nome,
+            cliente.cpf,
+            cliente.rg,
+            cliente.naturalidade,
+            cliente.telefone,
+            cliente.data_nascimento,
+            cliente.id_cliente
+        ];
+
+        const result = await pool.query(sql, values);
+        return result.rows[0];
+    }
+
     static buscarClientes = async () => {
         const sql = 'SELECT * FROM clientes';
         const result = await pool.query(sql);

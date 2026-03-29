@@ -3,8 +3,12 @@ import { AppError } from "../utils/AppError.js";
 
 class ClienteService {
 
-    static cadastrarCliente = async (cliente) => {
-        return await ClienteRepositorie.cadastrarCliente(cliente);
+    static salvarCliente = async (cliente) => {
+        if(cliente.id_cliente){
+            return await ClienteRepositorie.atualizarCliente(cliente);
+        } else {
+            return await ClienteRepositorie.cadastrarCliente(cliente);
+        }
     }
 
     static buscarCliente = async () => {

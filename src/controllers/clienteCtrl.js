@@ -4,11 +4,11 @@ import { AppError } from "../utils/AppError.js";
 
 class ClienteCtrl {
 
-    static cadastrarCliente = async (req, res, next) => {
+    static salvarCliente = async (req, res, next) => {
         try {
             const cliente = req.body;
-            const data = await ClienteService.cadastrarCliente(cliente);
-            const resp = new ApiResponse(true, data, 'Cliente cadastrado com sucesso!');
+            const data = await ClienteService.salvarCliente(cliente);
+            const resp = new ApiResponse(true, data, 'Cliente salvo com sucesso!');
             res.status(201).json(resp);
         } catch (e) {
             next(e);
