@@ -52,9 +52,17 @@ class ClienteRepositorie {
         return result.rows[0];
     }
 
-    static buscarClientes = async () => {
-        const sql = 'SELECT * FROM clientes';
-        const result = await pool.query(sql);
+    static buscarClientes = async (params) => {
+
+        const { take, skip } = params
+        const sql = 'SELECT * FROM clientes ORDER BY id_cliente LIMIT $1 OFFSET $2';
+
+        const values = [
+            Number(take) || 10,
+            Number(skip) || 0 
+        ]
+
+        const result = await pool.query(sql, values);
         return result.rows;
     }
 
@@ -70,6 +78,12 @@ class ClienteRepositorie {
         const values = [id];
         const result = await pool.query(sql, values);
         return result.rowCount;
+    }
+
+    static totalClientes = async () => {
+        const sql = 'SELECT COUNT(*) AS total FROM clientes;'
+        const result = await pool.query(sql);
+        return result.rows[0].total;
     }
 
 }

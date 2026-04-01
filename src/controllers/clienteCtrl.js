@@ -17,8 +17,17 @@ class ClienteCtrl {
 
     static buscarClientes = async (req, res, next) => {
         try {
-            const data = await ClienteService.buscarCliente();
-            const resp = new ApiResponse(true, data);
+            const params = req.query;
+            const { data, total } = await ClienteService.buscarClientes(params);
+
+            const resp =
+                new ApiResponse(
+                    true,
+                    data,
+                    'Realizado com sucesso!',
+                    { total }
+                );
+
             res.status(200).json(resp);
         } catch (e) {
             next(e);
