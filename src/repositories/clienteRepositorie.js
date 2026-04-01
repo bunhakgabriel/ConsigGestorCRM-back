@@ -54,13 +54,61 @@ class ClienteRepositorie {
 
     static buscarClientes = async (params) => {
 
-        const { take, skip } = params
-        const sql = 'SELECT * FROM clientes ORDER BY id_cliente LIMIT $1 OFFSET $2';
+        const { take, skip, filtros, ordenacao } = params
+        const { nome, cpf, rg, naturalidade, telefone, data_nascimento } = filtros
 
-        const values = [
-            Number(take) || 10,
-            Number(skip) || 0 
-        ]
+        let sql = 'SELECT * FROM clientes ';
+
+        const values = []
+
+        if (Object.keys(filtros).length) {
+            const conditions = [];
+
+            if (nome) {
+                values.push(`%${nome.filter}%`);
+                conditions.push(`nome ILIKE $${values.length} `);
+            }
+            if (cpf) {
+                values.push(`%${cpf.filter}%`);
+                conditions.push(`cpf ILIKE $${values.length} `);
+            }
+            if (rg) {
+                values.push(`%${rg.filter}%`);
+                conditions.push(`rg ILIKE $${values.length} `);
+            }
+            if (naturalidade) {
+                values.push(`%${naturalidade.filter}%`);
+                conditions.push(`naturalidade ILIKE $${values.length} `);
+            }
+            if (telefone) {
+                values.push(`%${telefone.filter}%`);
+                conditions.push(`telefone ILIKE $${values.length} `);
+            }
+            if (data_nascimento) {
+                values.push(`%${data_nascimento.filter}%`);
+                conditions.push(`data_nascimento ILIKE $${values.length} `);
+            }
+
+            if (conditions.length > 0) {
+                sql += 'WHERE ' + conditions.join('AND ');
+            }
+        }
+
+        if (ordenacao.length) {
+            const camposValidos = ['nome', 'cpf', 'rg', 'naturalidade', 'telefone', 'data_nascimento', 'id_cliente'];
+            const campoOrdenacao = camposValidos.includes(ordenacao[0].colId) ? ordenacao[0].colId : 'id_cliente';
+
+            const ordem = ordenacao[0].sort?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+
+            sql += ` ORDER BY ${campoOrdenacao} ${ordem} `;
+        } else {
+            sql += 'ORDER BY id_cliente ';
+        }
+
+        values.push(Number(take) || 10)
+        values.push(Number(skip) || 0)
+
+        sql += `LIMIT $${values.length - 1} OFFSET $${values.length}`;
 
         const result = await pool.query(sql, values);
         return result.rows;

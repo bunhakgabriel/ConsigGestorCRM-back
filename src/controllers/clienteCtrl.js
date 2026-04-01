@@ -17,7 +17,7 @@ class ClienteCtrl {
 
     static buscarClientes = async (req, res, next) => {
         try {
-            const params = req.query;
+            const params = req.body.params;
             const { data, total } = await ClienteService.buscarClientes(params);
 
             const resp =
