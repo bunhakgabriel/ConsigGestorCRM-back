@@ -55,43 +55,16 @@ class ClienteRepositorie {
     static buscarClientes = async (params) => {
 
         const { take, skip, filtros, ordenacao } = params
-        const { nome, cpf, rg, naturalidade, telefone, data_nascimento } = filtros
 
         let sql = 'SELECT * FROM clientes ';
 
-        const values = []
+        const values = [];
+        const conditions = [];
 
-        if (Object.keys(filtros).length) {
-            const conditions = [];
+        this.#filtrosClientes(filtros, values, conditions);
 
-            if (nome) {
-                values.push(`%${nome.filter}%`);
-                conditions.push(`nome ILIKE $${values.length} `);
-            }
-            if (cpf) {
-                values.push(`%${cpf.filter}%`);
-                conditions.push(`cpf ILIKE $${values.length} `);
-            }
-            if (rg) {
-                values.push(`%${rg.filter}%`);
-                conditions.push(`rg ILIKE $${values.length} `);
-            }
-            if (naturalidade) {
-                values.push(`%${naturalidade.filter}%`);
-                conditions.push(`naturalidade ILIKE $${values.length} `);
-            }
-            if (telefone) {
-                values.push(`%${telefone.filter}%`);
-                conditions.push(`telefone ILIKE $${values.length} `);
-            }
-            if (data_nascimento) {
-                values.push(`%${data_nascimento.filter}%`);
-                conditions.push(`data_nascimento ILIKE $${values.length} `);
-            }
-
-            if (conditions.length > 0) {
-                sql += 'WHERE ' + conditions.join('AND ');
-            }
+        if (conditions.length > 0) {
+            sql += 'WHERE ' + conditions.join(' AND ');
         }
 
         if (ordenacao.length) {
@@ -128,10 +101,52 @@ class ClienteRepositorie {
         return result.rowCount;
     }
 
-    static totalClientes = async () => {
-        const sql = 'SELECT COUNT(*) AS total FROM clientes;'
-        const result = await pool.query(sql);
+    static totalClientes = async (filtros) => {
+
+        let sql = 'SELECT COUNT(*) AS total FROM clientes '
+
+        const values = [];
+        const conditions = [];
+
+        this.#filtrosClientes(filtros, values, conditions);
+
+        if (conditions && conditions.length > 0) {
+            sql += 'WHERE ' + conditions.join(' AND ');
+        }
+
+        const result = await pool.query(sql, values);
         return result.rows[0].total;
+    }
+
+    static #filtrosClientes = (filtros, values, conditions) => {
+        const { nome, cpf, rg, naturalidade, telefone, data_nascimento } = filtros
+
+        if (Object.keys(filtros).length) {
+            if (nome) {
+                values.push(`%${nome.filter}%`);
+                conditions.push(`nome ILIKE $${values.length} `);
+            }
+            if (cpf) {
+                values.push(`%${cpf.filter}%`);
+                conditions.push(`cpf ILIKE $${values.length} `);
+            }
+            if (rg) {
+                values.push(`%${rg.filter}%`);
+                conditions.push(`rg ILIKE $${values.length} `);
+            }
+            if (naturalidade) {
+                values.push(`%${naturalidade.filter}%`);
+                conditions.push(`naturalidade ILIKE $${values.length} `);
+            }
+            if (telefone) {
+                values.push(`%${telefone.filter}%`);
+                conditions.push(`telefone ILIKE $${values.length} `);
+            }
+            if (data_nascimento) {
+                values.push(`%${data_nascimento.filter}%`);
+                conditions.push(`data_nascimento ILIKE $${values.length} `);
+            }
+        }
     }
 
 }

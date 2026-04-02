@@ -13,7 +13,7 @@ class ClienteService {
 
     static buscarClientes = async (params) => {
         const clientes = await ClienteRepositorie.buscarClientes(params);
-        const totalClientes = await ClienteRepositorie.totalClientes();
+        const totalClientes = await ClienteRepositorie.totalClientes(params?.filtros);
 
         const total = Number(totalClientes);
 
