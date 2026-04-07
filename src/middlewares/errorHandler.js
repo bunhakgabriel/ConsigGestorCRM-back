@@ -21,5 +21,5 @@ export function errorHandler(err, _req, res, _next) {
   // Erro genérico
   return res
     .status(500)
-    .json(new ApiResponse(false, null, "Erro interno do servidor"));
+    .json(new ApiResponse(false, null, (err?.message || "Erro interno do servidor")));
 }
