@@ -1,6 +1,9 @@
 import ClienteRepositorie from "../repositories/clienteRepositorie.js"
 import { AppError } from "../utils/AppError.js";
 import mapCliente from "./mappers/clienteMapper.js";
+import fs from 'fs';
+import path from 'path';
+import { randomUUID } from 'crypto';
 
 class ClienteService {
 
@@ -40,6 +43,36 @@ class ClienteService {
         if (linhasAfetadas == 0) {
             throw new AppError('Cliente não encontrado', 404);
         }
+    }
+
+    static uploadDocumentos = async (idCliente, documentos) => {
+        // Pasta base
+        const pastaBase = path.resolve('documentos');
+
+        // Pasta do cliente
+        const pastaCliente = path.join(pastaBase, String(idCliente));
+
+        // Cria a pasta se não existir
+        await fs.promises.mkdir(pastaCliente, { recursive: true });
+
+        const urlDocumentos = []
+        for (const file of documentos) {
+
+            // Remove espaços do nome original (opcional mas recomendado)
+            const nomeOriginal = file.originalname.replace(/\s+/g, '_');
+
+            // Gera nome único com UUID
+            const nomeArquivo = `${randomUUID()}-${nomeOriginal}`;
+
+            const caminho = path.join(pastaCliente, nomeArquivo);
+
+            fs.writeFileSync(caminho, file.buffer);
+
+            const url = `/documentos/${idCliente}/${nomeArquivo}`;
+            urlDocumentos.push(url);
+        }
+
+        return ClienteRepositorie.uploadDocumentos(idCliente, urlDocumentos);
     }
 }
 

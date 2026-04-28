@@ -332,6 +332,28 @@ class ClienteRepositorie {
         }
     }
 
+    static uploadDocumentos = async (idCliente, urlDocumentos) => {
+        const values = []
+        const placeholders = []
+
+        urlDocumentos.forEach((url, index) => {
+            const baseIndex = index * 2
+
+            placeholders.push(`($${baseIndex + 1}, $${baseIndex + 2})`);
+            values.push(idCliente, url);
+        })
+        
+
+        const sql = `
+            INSERT INTO documentos (cliente_id, url)
+            VALUES ${placeholders.join(', ')}
+            RETURNING*;
+        `
+
+        const resultDocumentos = await pool.query(sql, values);
+        return resultDocumentos.rows;
+    }
+
 }
 
 export default ClienteRepositorie;

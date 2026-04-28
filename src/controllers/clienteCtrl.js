@@ -69,8 +69,14 @@ class ClienteCtrl {
 
     static uploadDocumentos = async (req, res, next) => {
         try {
-            const id = Number(req.params.id);
+            const idCliente = Number(req.params.id);
             const documentos = req.files;
+
+            if(!documentos || documentos?.length == 0 ){
+                res.status(200).json(new ApiResponse(false, null, 'Nenhum documento enviado!'))
+            }
+
+            const data = await ClienteService.uploadDocumentos(idCliente, documentos)
 
             const resp = new ApiResponse(true, null, 'Documentos salvos com sucesso!');
             res.status(200).json(resp);
