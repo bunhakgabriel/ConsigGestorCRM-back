@@ -67,6 +67,18 @@ class ClienteCtrl {
         }
     }
 
+    static uploadDocumentos = async (req, res, next) => {
+        try {
+            const id = Number(req.params.id);
+            const documentos = req.files;
+
+            const resp = new ApiResponse(true, null, 'Documentos salvos com sucesso!');
+            res.status(200).json(resp);
+        } catch (e) {
+            next(e);
+        }
+    }
+
 }
 
 export default ClienteCtrl;

@@ -1,13 +1,15 @@
 import ClienteRepositorie from "../repositories/clienteRepositorie.js"
 import { AppError } from "../utils/AppError.js";
+import mapCliente from "./mappers/clienteMapper.js";
 
 class ClienteService {
 
-    static salvarCliente = async (cliente) => {
-        if (cliente.id_cliente) {
-            return await ClienteRepositorie.atualizarCliente(cliente);
+    static salvarCliente = async (data) => {
+        if (data.id_cliente) {
+            return await ClienteRepositorie.atualizarCliente(data);
         } else {
-            return await ClienteRepositorie.cadastrarCliente(cliente);
+            const cliente = await ClienteRepositorie.cadastrarCliente(data);
+            return mapCliente(cliente);
         }
     }
 

@@ -3,26 +3,209 @@ import pool from '../connection/connection.js'
 class ClienteRepositorie {
 
     static cadastrarCliente = async (cliente) => {
+        const client = await pool.connect();
 
-        const sql = `
-            INSERT INTO clientes 
-                (nome, cpf, rg, naturalidade, telefone, data_nascimento)
-            VALUES
-                ($1, $2, $3, $4, $5, $6)
-            RETURNING *;
-        `;
+        try {
+            await client.query("BEGIN");
 
-        const values = [
-            cliente.nome,
-            cliente.cpf,
-            cliente.rg,
-            cliente.naturalidade,
-            cliente.telefone,
-            cliente.data_nascimento
-        ];
+            let sql = `
+                INSERT INTO clientes
+                (
+                    cpf,
+                    nome,
+                    sexo,
+                    data_nascimento,
+                    naturalidade,
+                    nacionalidade_id,
+                    rg,
+                    data_emissao_rg,
+                    orgao_emissao_rg,
+                    uf_rg,
+                    telefone_1,
+                    telefone_2,
+                    telefone_3,
+                    observacoes,
+                    email,
+                    nome_pai,
+                    nome_mae,
+                    grau_instrucao_id,
+                    estado_civil_id,
+                    endereco_correspondencia,
+                    num_dependentes
+                )
+                VALUES
+                (
+                    $1,  $2,  $3,  $4,  $5,  $6,
+                    $7,  $8,  $9,  $10, $11, $12,
+                    $13, $14, $15, $16, $17, $18,
+                    $19, $20, $21
+                )
+                RETURNING *;
+            `;
 
-        const result = await pool.query(sql, values);
-        return result.rows[0];
+            let values = [
+                cliente.cpf ?? null,
+                cliente.nome ?? null,
+                cliente.sexo ?? null,
+                cliente.data_nascimento ?? null,
+                cliente.naturalidade ?? null,
+                cliente.nacionalidade ?? null,
+                cliente.rg ?? null,
+                cliente.data_emissao_rg ?? null,
+                cliente.orgao_emissor_rg ?? null,
+                cliente.uf_rg ?? null,
+                cliente.telefone_1 ?? null,
+                cliente.telefone_2 ?? null,
+                cliente.telefone_3 ?? null,
+                cliente.observacoes ?? null,
+                cliente.email ?? null,
+                cliente.nome_pai ?? null,
+                cliente.nome_mae ?? null,
+                cliente.grau_instrucao ?? null,
+                cliente.estado_civil ?? null,
+                cliente.endereco_correspondencia ?? null,
+                cliente.num_dependentes ?? null
+            ];
+
+            let resultCliente = await client.query(sql, values);
+            resultCliente = resultCliente.rows[0];
+
+            // Insert de endereço do cliente
+            sql = `
+                INSERT INTO enderecos
+                (
+                    cliente_id,
+                    cep,
+                    rua,
+                    cidade_estado,
+                    bairro,
+                    numero,
+                    complemento
+                )
+                VALUES
+                ($1, $2, $3, $4, $5, $6, $7)
+                RETURNING*;
+            `;
+
+            values = [
+                resultCliente.id_cliente,
+                cliente.endereco.cep ?? null,
+                cliente.endereco.rua ?? null,
+                cliente.endereco.cidade_estado ?? null,
+                cliente.endereco.bairro ?? null,
+                cliente.endereco.numero ?? null,
+                cliente.endereco.complemento ?? null,
+            ]
+
+            let resultEndereco = await client.query(sql, values);
+            resultEndereco = resultEndereco.rows[0];
+
+            // insert do conjugue do cliente
+            sql = `
+                INSERT INTO conjugue
+                (
+                    cliente_id,
+                    nome,
+                    data_nascimento,
+                    documento,
+                    naturalidade
+                )
+                VALUES
+                ($1, $2, $3, $4, $5)
+                RETURNING*;
+            `;
+
+            values = [
+                resultCliente.id_cliente,
+                cliente.conjugue.nome ?? null,
+                cliente.conjugue.data_nascimento ?? null,
+                cliente.conjugue.documento ?? null,
+                cliente.conjugue.naturalidade ?? null,
+            ]
+
+            let resultConjugue = await client.query(sql, values);
+            resultConjugue = resultConjugue.rows[0];
+
+            //Insert de informações bancárias
+            values = [];
+            let placeholders = [];
+
+            cliente.info_bancarias.forEach((info, index) => {
+                const baseIndex = index * 5;
+
+                placeholders.push(`($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4}, $${baseIndex + 5})`);
+
+                values.push(
+                    resultCliente.id_cliente,
+                    info.banco ?? null,
+                    info.agencia ?? null,
+                    info.tipo_conta ?? null,
+                    info.conta ?? null
+                );
+            });
+
+            sql = `
+                INSERT INTO info_bancarias (
+                    cliente_id,
+                    banco_id,
+                    agencia,
+                    tipo_conta,
+                    conta
+                )
+                VALUES ${placeholders.join(', ')}
+                RETURNING*;
+            `;
+
+            let resultInfoBancarias = await client.query(sql, values);
+            resultInfoBancarias = resultInfoBancarias.rows;
+
+            //Insert de informações beneficio
+            values = [];
+            placeholders = [];
+
+            cliente.info_beneficio.forEach((info, index) => {
+                const baseIndex = index * 4;
+
+                placeholders.push(`($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4})`);
+
+                values.push(
+                    resultCliente.id_cliente,
+                    info.convenio ?? null,
+                    info.margem ?? null,
+                    info.beneficio ?? null
+                );
+            });
+
+            sql = `
+                INSERT INTO info_beneficios (
+                    cliente_id,
+                    convenio_id,
+                    margem,
+                    beneficio
+                )
+                VALUES ${placeholders.join(', ')}
+                RETURNING*;
+            `;
+
+            let resultInfoBeneficio = await client.query(sql, values);
+            resultInfoBeneficio = resultInfoBeneficio.rows;
+
+            await client.query("COMMIT");
+
+            resultCliente.endereco = resultEndereco;
+            resultCliente.conjugue = resultConjugue;
+            resultCliente.info_bancarias = resultInfoBancarias;
+            resultCliente.info_beneficio = resultInfoBeneficio;
+
+            return { ...resultCliente };
+
+        } catch (error) {
+            await client.query("ROLLBACK");
+            throw error;
+        } finally {
+            client.release();
+        }
+
     }
 
     static atualizarCliente = async (cliente) => {
@@ -32,7 +215,7 @@ class ClienteRepositorie {
                 cpf = $2,
                 rg = $3,
                 naturalidade = $4,
-                telefone = $5,
+                telefone_1 = $5,
                 data_nascimento = $6
             WHERE id_cliente = $7
             RETURNING *;
@@ -43,7 +226,7 @@ class ClienteRepositorie {
             cliente.cpf,
             cliente.rg,
             cliente.naturalidade,
-            cliente.telefone,
+            cliente.telefone_1,
             cliente.data_nascimento,
             cliente.id_cliente
         ];
@@ -68,7 +251,7 @@ class ClienteRepositorie {
         }
 
         if (ordenacao.length) {
-            const camposValidos = ['nome', 'cpf', 'rg', 'naturalidade', 'telefone', 'data_nascimento', 'id_cliente'];
+            const camposValidos = ['nome', 'cpf', 'rg', 'naturalidade', 'telefone_1', 'data_nascimento', 'id_cliente'];
             const campoOrdenacao = camposValidos.includes(ordenacao[0].colId) ? ordenacao[0].colId : 'id_cliente';
 
             const ordem = ordenacao[0].sort?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
@@ -119,7 +302,7 @@ class ClienteRepositorie {
     }
 
     static #filtrosClientes = (filtros, values, conditions) => {
-        const { nome, cpf, rg, naturalidade, telefone, data_nascimento } = filtros
+        const { nome, cpf, rg, naturalidade, telefone_1, data_nascimento } = filtros
 
         if (Object.keys(filtros).length) {
             if (nome) {
@@ -138,9 +321,9 @@ class ClienteRepositorie {
                 values.push(`%${naturalidade.filter}%`);
                 conditions.push(`naturalidade ILIKE $${values.length} `);
             }
-            if (telefone) {
-                values.push(`%${telefone.filter}%`);
-                conditions.push(`telefone ILIKE $${values.length} `);
+            if (telefone_1) {
+                values.push(`%${telefone_1.filter}%`);
+                conditions.push(`telefone_1 ILIKE $${values.length} `);
             }
             if (data_nascimento) {
                 values.push(`%${data_nascimento.filter}%`);
