@@ -71,134 +71,137 @@ class ClienteRepositorie {
             resultCliente = resultCliente.rows[0];
 
             // Insert de endereço do cliente
-            sql = `
-                INSERT INTO enderecos
-                (
-                    cliente_id,
-                    cep,
-                    rua,
-                    cidade_estado,
-                    bairro,
-                    numero,
-                    complemento
-                )
-                VALUES
-                ($1, $2, $3, $4, $5, $6, $7)
-                RETURNING*;
-            `;
+            if (cliente.endereco) {
+                sql = `
+                    INSERT INTO enderecos
+                    (
+                        cliente_id,
+                        cep,
+                        rua,
+                        cidade_estado,
+                        bairro,
+                        numero,
+                        complemento
+                    )
+                    VALUES
+                    ($1, $2, $3, $4, $5, $6, $7)
+                    RETURNING*;
+                `;
 
-            values = [
-                resultCliente.id_cliente,
-                cliente.endereco.cep ?? null,
-                cliente.endereco.rua ?? null,
-                cliente.endereco.cidade_estado ?? null,
-                cliente.endereco.bairro ?? null,
-                cliente.endereco.numero ?? null,
-                cliente.endereco.complemento ?? null,
-            ]
+                values = [
+                    resultCliente.id_cliente,
+                    cliente.endereco.cep ?? null,
+                    cliente.endereco.rua ?? null,
+                    cliente.endereco.cidade_estado ?? null,
+                    cliente.endereco.bairro ?? null,
+                    cliente.endereco.numero ?? null,
+                    cliente.endereco.complemento ?? null,
+                ]
 
-            let resultEndereco = await client.query(sql, values);
-            resultEndereco = resultEndereco.rows[0];
+                let resultEndereco = await client.query(sql, values);
+                resultCliente.endereco = resultEndereco.rows[0];
+            }
 
             // insert do conjugue do cliente
-            sql = `
-                INSERT INTO conjugue
-                (
-                    cliente_id,
-                    nome,
-                    data_nascimento,
-                    documento,
-                    naturalidade
-                )
-                VALUES
-                ($1, $2, $3, $4, $5)
-                RETURNING*;
-            `;
+            if (cliente.conjugue) {
+                sql = `
+                    INSERT INTO conjugue
+                    (
+                        cliente_id,
+                        nome,
+                        data_nascimento,
+                        documento,
+                        naturalidade
+                    )
+                    VALUES
+                    ($1, $2, $3, $4, $5)
+                    RETURNING*;
+                `;
 
-            values = [
-                resultCliente.id_cliente,
-                cliente.conjugue.nome ?? null,
-                cliente.conjugue.data_nascimento ?? null,
-                cliente.conjugue.documento ?? null,
-                cliente.conjugue.naturalidade ?? null,
-            ]
+                values = [
+                    resultCliente.id_cliente,
+                    cliente.conjugue.nome ?? null,
+                    cliente.conjugue.data_nascimento ?? null,
+                    cliente.conjugue.documento ?? null,
+                    cliente.conjugue.naturalidade ?? null,
+                ]
 
-            let resultConjugue = await client.query(sql, values);
-            resultConjugue = resultConjugue.rows[0];
+                let resultConjugue = await client.query(sql, values);
+                resultCliente.conjugue = resultConjugue.rows[0];
+            }
 
             //Insert de informações bancárias
-            values = [];
-            let placeholders = [];
+            if (cliente.info_bancarias.length > 0) {
+                let values = [];
+                let placeholders = [];
 
-            cliente.info_bancarias.forEach((info, index) => {
-                const baseIndex = index * 5;
+                cliente.info_bancarias.forEach((info, index) => {
+                    const baseIndex = index * 5;
 
-                placeholders.push(`($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4}, $${baseIndex + 5})`);
+                    placeholders.push(`($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4}, $${baseIndex + 5})`);
 
-                values.push(
-                    resultCliente.id_cliente,
-                    info.banco ?? null,
-                    info.agencia ?? null,
-                    info.tipo_conta ?? null,
-                    info.conta ?? null
-                );
-            });
+                    values.push(
+                        resultCliente.id_cliente,
+                        info.banco ?? null,
+                        info.agencia ?? null,
+                        info.tipo_conta ?? null,
+                        info.conta ?? null
+                    );
+                });
 
-            sql = `
-                INSERT INTO info_bancarias (
-                    cliente_id,
-                    banco_id,
-                    agencia,
-                    tipo_conta,
-                    conta
-                )
-                VALUES ${placeholders.join(', ')}
-                RETURNING*;
-            `;
+                sql = `
+                    INSERT INTO info_bancarias (
+                        cliente_id,
+                        banco_id,
+                        agencia,
+                        tipo_conta,
+                        conta
+                    )
+                    VALUES ${placeholders.join(', ')}
+                    RETURNING*;
+                `;
 
-            let resultInfoBancarias = await client.query(sql, values);
-            resultInfoBancarias = resultInfoBancarias.rows;
+                let resultInfoBancarias = await client.query(sql, values);
+                resultCliente.info_bancarias = resultInfoBancarias.rows;
+            }
 
             //Insert de informações beneficio
-            values = [];
-            placeholders = [];
+            if (cliente.info_beneficio.length > 0) {
+                values = [];
+                placeholders = [];
 
-            cliente.info_beneficio.forEach((info, index) => {
-                const baseIndex = index * 4;
+                cliente.info_beneficio.forEach((info, index) => {
+                    const baseIndex = index * 4;
 
-                placeholders.push(`($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4})`);
+                    placeholders.push(`($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4})`);
 
-                values.push(
-                    resultCliente.id_cliente,
-                    info.convenio ?? null,
-                    info.margem ?? null,
-                    info.beneficio ?? null
-                );
-            });
+                    values.push(
+                        resultCliente.id_cliente,
+                        info.convenio ?? null,
+                        info.margem ?? null,
+                        info.beneficio ?? null
+                    );
+                });
 
-            sql = `
-                INSERT INTO info_beneficios (
-                    cliente_id,
-                    convenio_id,
-                    margem,
-                    beneficio
-                )
-                VALUES ${placeholders.join(', ')}
-                RETURNING*;
-            `;
+                sql = `
+                    INSERT INTO info_beneficios (
+                        cliente_id,
+                        convenio_id,
+                        margem,
+                        beneficio
+                    )
+                    VALUES ${placeholders.join(', ')}
+                    RETURNING*;
+                `;
 
-            let resultInfoBeneficio = await client.query(sql, values);
-            resultInfoBeneficio = resultInfoBeneficio.rows;
+                let resultInfoBeneficio = await client.query(sql, values);
+                resultCliente.info_beneficio = resultInfoBeneficio.rows;
+            }
 
             await client.query("COMMIT");
 
-            resultCliente.endereco = resultEndereco;
-            resultCliente.conjugue = resultConjugue;
-            resultCliente.info_bancarias = resultInfoBancarias;
-            resultCliente.info_beneficio = resultInfoBeneficio;
-
             return { ...resultCliente };
-
+            
         } catch (error) {
             await client.query("ROLLBACK");
             throw error;
@@ -342,7 +345,7 @@ class ClienteRepositorie {
             placeholders.push(`($${baseIndex + 1}, $${baseIndex + 2})`);
             values.push(idCliente, url);
         })
-        
+
 
         const sql = `
             INSERT INTO documentos (cliente_id, url)
