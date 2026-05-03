@@ -30,6 +30,11 @@ function mapCliente(cliente) {
     endereco_correspondencia: cliente.endereco_correspondencia,
     num_dependentes: cliente.num_dependentes,
 
+    documentos: (cliente.documentos || []).map(doc => ({
+      file: null,
+      url: doc.url ?? null
+    })),
+
     endereco: {
       cep: cliente.endereco?.cep ?? null,
       rua: cliente.endereco?.rua ?? null,

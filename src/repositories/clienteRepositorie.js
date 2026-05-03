@@ -167,8 +167,8 @@ class ClienteRepositorie {
 
             //Insert de informações beneficio
             if (cliente.info_beneficio.length > 0) {
-                values = [];
-                placeholders = [];
+                let values = [];
+                let placeholders = [];
 
                 cliente.info_beneficio.forEach((info, index) => {
                     const baseIndex = index * 4;
@@ -274,10 +274,38 @@ class ClienteRepositorie {
     }
 
     static buscarClientePorId = async (id) => {
-        const sql = 'SELECT * FROM clientes WHERE id_cliente = $1';
-        const values = [id];
-        const result = await pool.query(sql, values);
-        return result.rows[0];
+        let sql = 'SELECT * FROM clientes WHERE id_cliente = $1';
+        let values = [id];
+        let resultCliente = await pool.query(sql, values);
+        resultCliente = resultCliente.rows[0];
+
+        sql = `SELECT * FROM enderecos WHERE cliente_id = $1`;
+        let resultEndereco = await pool.query(sql, values);
+        resultEndereco = resultEndereco.rows[0];
+
+        sql = `SELECT * FROM conjugue WHERE cliente_id = $1`;
+        let resultConjugue = await pool.query(sql, values);
+        resultConjugue = resultConjugue.rows[0];
+
+        sql = `SELECT * FROM info_bancarias WHERE cliente_id = $1`;
+        let resultInfoBancarias = await pool.query(sql, values);
+        resultInfoBancarias = resultInfoBancarias.rows;
+
+        sql = `SELECT * FROM info_beneficios WHERE cliente_id = $1`;
+        let resultInfoBeneficio = await pool.query(sql, values);
+        resultInfoBeneficio = resultInfoBeneficio.rows;
+
+        sql = `SELECT * FROM documentos WHERE cliente_id = $1`;
+        let resultDocumentos = await pool.query(sql, values);
+        resultDocumentos = resultDocumentos.rows;
+
+        resultCliente.endereco = resultEndereco;
+        resultCliente.conjugue = resultConjugue;
+        resultCliente.info_bancarias = resultInfoBancarias;
+        resultCliente.info_beneficio = resultInfoBeneficio; 
+        resultCliente.documentos = resultDocumentos;
+
+        return resultCliente;
     }
 
     static deletarCliente = async (id) => {

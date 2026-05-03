@@ -34,7 +34,7 @@ class ClienteService {
         if (!cliente) {
             throw new AppError('Cliente não encontrado', 404);
         }
-        return cliente;
+        return mapCliente(cliente);
     }
 
     static deletarCliente = async (id) => {
