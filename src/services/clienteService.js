@@ -9,7 +9,8 @@ class ClienteService {
 
     static salvarCliente = async (data) => {
         if (data.id_cliente) {
-            return await ClienteRepositorie.atualizarCliente(data);
+            const cliente = await ClienteRepositorie.atualizarCliente(data);
+            return mapCliente(cliente);
         } else {
             const cliente = await ClienteRepositorie.cadastrarCliente(data);
             return mapCliente(cliente);

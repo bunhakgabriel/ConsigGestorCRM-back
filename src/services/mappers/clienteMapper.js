@@ -32,7 +32,7 @@ function mapCliente(cliente) {
 
     documentos: (cliente.documentos || []).map(doc => ({
       file: null,
-      url: doc.url ?? null
+      url: process.env.BASE_URL + doc.url ?? null
     })),
 
     endereco: {
@@ -52,6 +52,7 @@ function mapCliente(cliente) {
     },
 
     info_bancarias: (cliente.info_bancarias || []).map(b => ({
+      id: b.id_info_bancarias,
       banco: b.banco_id ?? b.banco,
       agencia: b.agencia,
       tipo_conta: b.tipo_conta,
@@ -59,6 +60,7 @@ function mapCliente(cliente) {
     })),
 
     info_beneficio: (cliente.info_beneficio || []).map(b => ({
+      id: b.id_info_beneficio,
       beneficio: b.beneficio,
       convenio: b.convenio_id ?? b.convenio,
       margem: b.margem !== null && b.margem !== undefined ? Number(b.margem) : null
