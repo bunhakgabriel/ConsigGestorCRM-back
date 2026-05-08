@@ -46,34 +46,56 @@ class ClienteService {
         }
     }
 
-    static uploadDocumentos = async (idCliente, documentos) => {
-        // Pasta base
-        const pastaBase = path.resolve('documentos');
+    static uploadDocumentos = async (idCliente, documentos, urlsFront) => {
+        const documentosBanco = await ClienteRepositorie.buscarDocumentoPorCliente(idCliente);
+        const urls = urlsFront ?? [];
 
-        // Pasta do cliente
-        const pastaCliente = path.join(pastaBase, String(idCliente));
+        const paraDeletar = documentosBanco.filter(doc => {
+            return !urls.includes(process.env.BASE_URL + doc.url)
+        });
 
-        // Cria a pasta se não existir
-        await fs.promises.mkdir(pastaCliente, { recursive: true });
+        if (paraDeletar?.length > 0) {
+            const idsParaDeletar = paraDeletar.map(d => d.id_documento)
+            await ClienteRepositorie.deletarDocumentosCliente(idsParaDeletar, idCliente)
 
-        const urlDocumentos = []
-        for (const file of documentos) {
+            for (const doc of paraDeletar) {
+                const caminho = path.resolve('.', doc.url.replace('/documentos/', 'documentos/'));
 
-            // Remove espaços do nome original (opcional mas recomendado)
-            const nomeOriginal = file.originalname.replace(/\s+/g, '_');
-
-            // Gera nome único com UUID
-            const nomeArquivo = `${randomUUID()}-${nomeOriginal}`;
-
-            const caminho = path.join(pastaCliente, nomeArquivo);
-
-            fs.writeFileSync(caminho, file.buffer);
-
-            const url = `/documentos/${idCliente}/${nomeArquivo}`;
-            urlDocumentos.push(url);
+                try {
+                    await fs.promises.unlink(caminho);
+                } catch (e) {
+                    console.warn('Arquivo não encontrado:', caminho);
+                }
+            }
         }
 
-        return ClienteRepositorie.uploadDocumentos(idCliente, urlDocumentos);
+        if (documentos?.length > 0) {
+            // Pasta base
+            const pastaBase = path.resolve('documentos');
+            // Pasta do cliente
+            const pastaCliente = path.join(pastaBase, String(idCliente));
+            // Cria a pasta se não existir
+            await fs.promises.mkdir(pastaCliente, { recursive: true });
+
+            const urlDocumentos = []
+            for (const file of documentos) {
+
+                // Remove espaços do nome original (opcional mas recomendado)
+                const nomeOriginal = file.originalname.replace(/\s+/g, '_');
+
+                // Gera nome único com UUID
+                const nomeArquivo = `${randomUUID()}-${nomeOriginal}`;
+
+                const caminho = path.join(pastaCliente, nomeArquivo);
+
+                fs.writeFileSync(caminho, file.buffer);
+
+                const url = `/documentos/${idCliente}/${nomeArquivo}`;
+                urlDocumentos.push(url);
+            }
+
+            return ClienteRepositorie.uploadDocumentos(idCliente, urlDocumentos);
+        }
     }
 }
 

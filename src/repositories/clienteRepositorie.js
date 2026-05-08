@@ -752,6 +752,19 @@ class ClienteRepositorie {
         return resultDocumentos.rows;
     }
 
+    static buscarDocumentoPorCliente = async (idCliente) => {
+        const sql = 'SELECT * FROM documentos WHERE cliente_id = $1';
+        const result = await pool.query(sql, [idCliente]);
+        return result.rows
+    }
+
+    static deletarDocumentosCliente = async (idsParaDeletar, idCliente) => {
+        await pool.query(
+            'DELETE FROM documentos WHERE id_documento = ANY($1) AND cliente_id = $2',
+            [idsParaDeletar, idCliente]
+        )
+    } 
+
 }
 
 export default ClienteRepositorie;
