@@ -73,10 +73,6 @@ class ClienteCtrl {
             const documentos = req.files;
             const urls = req.body.urls;
 
-            if((!documentos || documentos?.length == 0) && (!urls || urls.length == 0)){
-                return res.status(200).json(new ApiResponse(false, null, 'Nenhum documento enviado!'));
-            }
-
             const data = await ClienteService.uploadDocumentos(idCliente, documentos, urls);
 
             const resp = new ApiResponse(true, null, 'Documentos salvos com sucesso!');
