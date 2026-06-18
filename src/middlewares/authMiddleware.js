@@ -3,6 +3,10 @@ import { AppError } from "../utils/AppError.js";
 
 export const allowedEmails = [
     "gabrielbunhak70@gmail.com",
+    "priscila.camargocred@gmail.com",
+    "priscilaeuropr@gmail.com",
+    "Ketlynerodrigo@gmail.com",
+    "ketlynerodrigo@gmail.com"
 ];
 
 export default async function (req, res, next) {
