@@ -44,30 +44,12 @@ class ClienteService {
         if (linhasAfetadas == 0) {
             throw new AppError('Cliente não encontrado', 404);
         }
+
+        await ClienteService.deletarPastaDocumentosCliente(id);
     }
 
     static uploadDocumentos = async (idCliente, documentos, urlsFront) => {
-        const documentosBanco = await ClienteRepositorie.buscarDocumentoPorCliente(idCliente);
-        const urls = urlsFront ?? [];
-
-        const paraDeletar = documentosBanco.filter(doc => {
-            return !urls.includes(process.env.BASE_URL + doc.url)
-        });
-
-        if (paraDeletar?.length > 0) {
-            const idsParaDeletar = paraDeletar.map(d => d.id_documento)
-            await ClienteRepositorie.deletarDocumentosCliente(idsParaDeletar, idCliente)
-
-            for (const doc of paraDeletar) {
-                const caminho = path.resolve('.', doc.url.replace('/documentos/', 'documentos/'));
-
-                try {
-                    await fs.promises.unlink(caminho);
-                } catch (e) {
-                    console.warn('Arquivo não encontrado:', caminho);
-                }
-            }
-        }
+        await ClienteService.deletarDocumentosCliente(idCliente, urlsFront);
 
         if (documentos?.length > 0) {
             // Pasta base
@@ -95,6 +77,43 @@ class ClienteService {
             }
 
             return ClienteRepositorie.uploadDocumentos(idCliente, urlDocumentos);
+        }
+    }
+
+    static deletarDocumentosCliente = async (idCliente, urlsFront) => {
+        const documentosBanco = await ClienteRepositorie.buscarDocumentoPorCliente(idCliente);
+        const urls = urlsFront ?? [];
+
+        const paraDeletar = documentosBanco.filter(doc => {
+            return !urls.includes(process.env.BASE_URL + doc.url)
+        });
+
+        if (paraDeletar?.length > 0) {
+            const idsParaDeletar = paraDeletar.map(d => d.id_documento)
+            await ClienteRepositorie.deletarDocumentosCliente(idsParaDeletar, idCliente)
+
+            for (const doc of paraDeletar) {
+                const caminho = path.resolve('.', doc.url.replace('/documentos/', 'documentos/'));
+
+                try {
+                    await fs.promises.unlink(caminho);
+                } catch (e) {
+                    console.warn('Arquivo não encontrado:', caminho);
+                }
+            }
+        }
+    }
+
+    static deletarPastaDocumentosCliente = async (idCliente) => {
+        const pastaCliente = path.resolve('documentos', String(idCliente));
+
+        try {
+            await fs.promises.rm(pastaCliente, {
+                recursive: true,
+                force: true
+            });
+        } catch (e) {
+            console.error('Erro ao remover pasta do cliente:', e);
         }
     }
 }
