@@ -1,4 +1,5 @@
 import clienteRoutes from "../routes/clienteRoutes.js"
+import vendedorRoutes from "../routes/vendedorRoutes.js"
 import authMiddleware from "../middlewares/authMiddleware.js"
 import express from 'express'
 import path from "path";
@@ -22,6 +23,7 @@ const route = (app) => {
 
     app.use(authMiddleware)
     app.use(clienteRoutes)
+    app.use(vendedorRoutes)
     app.use(referenceDataRoutes)
 }
 
