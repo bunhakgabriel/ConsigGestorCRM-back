@@ -5,7 +5,7 @@ class VendedorService {
 
     static salvarVendedor = async (data) => {
         if (data.id_vendedor) {
-            return await VendedorRepositorie.cadastrarVendedor(data);
+            return await VendedorRepositorie.atualizarVendedor(data);
         } else {
             return await VendedorRepositorie.cadastrarVendedor(data);
         }

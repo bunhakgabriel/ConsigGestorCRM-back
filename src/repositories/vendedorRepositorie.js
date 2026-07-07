@@ -13,11 +13,32 @@ class VendedorRepositorie {
         return result.rows[0];
     }
 
+    static atualizarVendedor = async (vendedor) => {
+        let sql = `
+                UPDATE vendedores
+                SET nome = $1,
+                    telefone = $2,
+                    observacoes = $3
+                WHERE id_vendedor = $4
+                RETURNING *;
+            `;
+
+        const values = [
+            vendedor.nome ?? null,
+            vendedor.telefone ?? null,
+            vendedor.observacoes ?? null,
+            vendedor.id_vendedor
+        ]
+
+        const result = await pool.query(sql, values);
+        return result.rows[0];
+    }
+
     static buscarVendedores = async (params) => {
 
         const { take, skip, filtros, ordenacao } = params
 
-        let sql = 'SELECT * FROM vendedores';
+        let sql = 'SELECT * FROM vendedores ';
 
         const values = [];
         const conditions = [];
@@ -64,7 +85,7 @@ class VendedorRepositorie {
 
     static totalVendedores = async (filtros) => {
 
-        let sql = 'SELECT COUNT(*) AS total FROM vendedores'
+        let sql = 'SELECT COUNT(*) AS total FROM vendedores '
 
         const values = [];
         const conditions = [];
