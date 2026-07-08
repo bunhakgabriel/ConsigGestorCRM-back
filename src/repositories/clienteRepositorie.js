@@ -31,14 +31,15 @@ class ClienteRepositorie {
                     grau_instrucao_id,
                     estado_civil_id,
                     endereco_correspondencia,
-                    num_dependentes
+                    num_dependentes,
+                    vendedor_id
                 )
                 VALUES
                 (
                     $1,  $2,  $3,  $4,  $5,  $6,
                     $7,  $8,  $9,  $10, $11, $12,
                     $13, $14, $15, $16, $17, $18,
-                    $19, $20, $21
+                    $19, $20, $21, $22
                 )
                 RETURNING *;
             `;
@@ -64,7 +65,8 @@ class ClienteRepositorie {
                 cliente.grau_instrucao ?? null,
                 cliente.estado_civil ?? null,
                 cliente.endereco_correspondencia ?? null,
-                cliente.num_dependentes ?? null
+                cliente.num_dependentes ?? null,
+                cliente.vendedor ?? null
             ];
 
             let resultCliente = await client.query(sql, values);
@@ -237,8 +239,9 @@ class ClienteRepositorie {
                     grau_instrucao_id = $16,
                     estado_civil_id = $17,
                     endereco_correspondencia = $18,
-                    num_dependentes = $19
-                WHERE id_cliente = $20
+                    num_dependentes = $19,
+                    vendedor_id = $20
+                WHERE id_cliente = $21
                 RETURNING *;
             `;
 
@@ -262,6 +265,7 @@ class ClienteRepositorie {
                 cliente.estado_civil ?? null,
                 cliente.endereco_correspondencia ?? null,
                 cliente.num_dependentes ?? null,
+                cliente.vendedor ?? null,
                 cliente.id_cliente
             ];
 

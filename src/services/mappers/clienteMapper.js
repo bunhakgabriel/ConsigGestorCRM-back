@@ -4,6 +4,7 @@ function mapCliente(cliente) {
     cpf: cliente.cpf,
     nome: cliente.nome,
     sexo: cliente.sexo,
+    vendedor: cliente.vendedor_id,
     data_nascimento: cliente.data_nascimento,
     naturalidade: cliente.naturalidade,
 
