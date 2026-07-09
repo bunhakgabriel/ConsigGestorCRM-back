@@ -407,7 +407,7 @@ class ClienteRepositorie {
             const idsFront = cliente.info_bancarias.filter(i => i.id).map(i => i.id);
             const idsInfoBancariasParaDeletar = idsInfoBancariasBanco.filter(id => !idsFront.includes(id));
 
-            if(idsInfoBancariasParaDeletar.length > 0){
+            if (idsInfoBancariasParaDeletar.length > 0) {
                 await client.query(
                     'DELETE FROM info_bancarias WHERE id_info_bancarias = ANY($1) AND cliente_id = $2',
                     [idsInfoBancariasParaDeletar, cliente.id_cliente]
@@ -510,7 +510,7 @@ class ClienteRepositorie {
             const idsInfoBeneficioFront = cliente.info_beneficio.filter(i => i.id).map(i => i.id);
             const idsInfoBeneficioParaDeletar = idsInfoBeneficioBanco.filter(id => !idsInfoBeneficioFront.includes(id));
 
-            if(idsInfoBeneficioParaDeletar.length > 0){
+            if (idsInfoBeneficioParaDeletar.length > 0) {
                 await client.query(
                     'DELETE FROM info_beneficios WHERE id_info_beneficio = ANY($1) AND cliente_id = $2',
                     [idsInfoBeneficioParaDeletar, cliente.id_cliente]
@@ -613,7 +613,19 @@ class ClienteRepositorie {
 
         const { take, skip, filtros, ordenacao } = params
 
-        let sql = 'SELECT * FROM clientes ';
+        let sql = `
+            SELECT
+                c.id_cliente,
+                c.nome,
+                c.cpf,
+                c.rg,
+                v.nome AS vendedor,
+                c.telefone_1,
+                c.data_nascimento
+            FROM clientes c
+            LEFT JOIN vendedores v
+                ON v.id_vendedor = c.vendedor_id
+        `
 
         const values = [];
         const conditions = [];
@@ -625,7 +637,7 @@ class ClienteRepositorie {
         }
 
         if (ordenacao.length) {
-            const camposValidos = ['nome', 'cpf', 'rg', 'naturalidade', 'telefone_1', 'data_nascimento', 'id_cliente'];
+            const camposValidos = ['nome', 'cpf', 'rg', 'vendedor', 'telefone_1', 'data_nascimento', 'id_cliente'];
             const campoOrdenacao = camposValidos.includes(ordenacao[0].colId) ? ordenacao[0].colId : 'id_cliente';
 
             const ordem = ordenacao[0].sort?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
@@ -688,7 +700,12 @@ class ClienteRepositorie {
 
     static totalClientes = async (filtros) => {
 
-        let sql = 'SELECT COUNT(*) AS total FROM clientes '
+        let sql = `
+            SELECT COUNT(*) AS total
+            FROM clientes c
+            LEFT JOIN vendedores v
+                ON v.id_vendedor = c.vendedor_id
+        `
 
         const values = [];
         const conditions = [];
@@ -704,32 +721,32 @@ class ClienteRepositorie {
     }
 
     static #filtrosClientes = (filtros, values, conditions) => {
-        const { nome, cpf, rg, naturalidade, telefone_1, data_nascimento } = filtros
+        const { nome, cpf, rg, vendedor, telefone_1, data_nascimento } = filtros
 
         if (Object.keys(filtros).length) {
             if (nome) {
                 values.push(`%${nome.filter}%`);
-                conditions.push(`nome ILIKE $${values.length} `);
+                conditions.push(`c.nome ILIKE $${values.length} `);
             }
             if (cpf) {
                 values.push(`%${cpf.filter}%`);
-                conditions.push(`cpf ILIKE $${values.length} `);
+                conditions.push(`c.cpf ILIKE $${values.length} `);
             }
             if (rg) {
                 values.push(`%${rg.filter}%`);
-                conditions.push(`rg ILIKE $${values.length} `);
+                conditions.push(`c.rg ILIKE $${values.length} `);
             }
-            if (naturalidade) {
-                values.push(`%${naturalidade.filter}%`);
-                conditions.push(`naturalidade ILIKE $${values.length} `);
+            if (vendedor) {
+                values.push(`%${vendedor.filter}%`);
+                conditions.push(`v.nome ILIKE $${values.length} `);
             }
             if (telefone_1) {
                 values.push(`%${telefone_1.filter}%`);
-                conditions.push(`telefone_1 ILIKE $${values.length} `);
+                conditions.push(`c.telefone_1 ILIKE $${values.length} `);
             }
             if (data_nascimento) {
                 values.push(`%${data_nascimento.filter}%`);
-                conditions.push(`data_nascimento ILIKE $${values.length} `);
+                conditions.push(`c.data_nascimento ILIKE $${values.length} `);
             }
         }
     }
@@ -767,7 +784,7 @@ class ClienteRepositorie {
             'DELETE FROM documentos WHERE id_documento = ANY($1) AND cliente_id = $2',
             [idsParaDeletar, idCliente]
         )
-    } 
+    }
 
 }
 
